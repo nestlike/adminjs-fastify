@@ -1,0 +1,14 @@
+{
+  "typescript.format.semicolons": "insert",
+  "typescript.preferences.quoteStyle": "single",
+  "typescript.format.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces": true,
+  "[typescript]": {
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true
+    }
+  },
+  "conventionalCommits.gitmoji": false,
+  "conventionalCommits.promptBody": false,
+  "conventionalCommits.promptFooter": false,
+  "conventionalCommits.promptScopes": false
+}
