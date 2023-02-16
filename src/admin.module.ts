@@ -1,6 +1,6 @@
 import { ConfigurableModuleAsyncOptions, DynamicModule, Module } from '@nestjs/common';
 import { ResourceWithOptions } from 'adminjs';
-import { AdminFeatureModule } from './admin-feature.module';
+import { AdminFeatureModule, resourceCollector } from './admin-feature.module';
 
 import { AdminRootModule } from './admin-root.module';
 import { AdminModuleOptions } from './admin-root.module-definition';
@@ -29,6 +29,8 @@ export class AdminModule {
     }
 
     public static forFeature(resources: (ResourceWithOptions | any)[]): DynamicModule {
+        resourceCollector.register();
+
         return {
             module: AdminModule,
             imports: [
@@ -38,6 +40,8 @@ export class AdminModule {
     }
 
     public static forFeatureAsync(asyncResources: ConfigurableModuleAsyncOptions<(ResourceWithOptions | any)[], 'create'>): DynamicModule {
+        resourceCollector.register();
+
         return {
             module: AdminModule,
             imports: [

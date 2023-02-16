@@ -1,43 +1,44 @@
 import AdminJSFastify from '@adminjs/fastify';
-import { Module, Logger, Inject, OnModuleInit } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import AdminJS from 'adminjs';
 import { FastifyInstance } from 'fastify';
 
-import { resources } from './admin-feature.module';
+import { resourceCollector } from './admin-feature.module';
 import { AdminModuleOptions, AdminRootModuleClass, ADMIN_MODULE_OPTIONS } from './admin-root.module-definition';
 
-@Module({})
-export class AdminRootModule extends AdminRootModuleClass implements OnModuleInit {
+@Module({
+    providers: [
+        {
+            provide: AdminJS,
+            inject: [ADMIN_MODULE_OPTIONS, HttpAdapterHost],
+            async useFactory(options: AdminModuleOptions, httpAdapterHost: HttpAdapterHost) {
+                const { adminJSOptions, auth, sessionOptions } = options;
+                const resources = await resourceCollector.resources;
 
-    constructor(
-        @Inject(ADMIN_MODULE_OPTIONS)
-        private options: AdminModuleOptions,
-        private httpAdapterHost: HttpAdapterHost
-    ) {
-        super();
-    }
+                if (resources.length) {
+                    adminJSOptions.resources = adminJSOptions.resources
+                        ? [
+                            ...adminJSOptions.resources,
+                            ...resources
+                        ]
+                        : resources;
+                }
 
-    public async onModuleInit(): Promise<void> {
-        const { adminJSOptions, auth, sessionOptions } = this.options;
+                const adminJS = new AdminJS(adminJSOptions);
 
-        if (resources.length) {
-            adminJSOptions.resources = adminJSOptions.resources
-                ? [
-                    ...adminJSOptions.resources,
-                    ...resources
-                ]
-                : resources;
+                await httpAdapterHost.httpAdapter.getInstance<FastifyInstance>().register(async fastifyApp => {
+                    await AdminJSFastify.buildAuthenticatedRouter(adminJS, auth, fastifyApp, sessionOptions);
+                });
+
+                new Logger('AdminModule').log(`Setup adminJS at ${ adminJS.options.rootPath }`);
+
+                return adminJS;
+            }
         }
-
-        const adminJS = new AdminJS(adminJSOptions);
-
-        await this.httpAdapterHost.httpAdapter.getInstance<FastifyInstance>().register(async fastifyApp => {
-            fastifyApp.removeContentTypeParser('application/x-www-form-urlencoded');
-            await AdminJSFastify.buildAuthenticatedRouter(adminJS, auth, fastifyApp, sessionOptions);
-        });
-
-        new Logger('AdminModule').log(`Setup adminJS at ${ adminJS.options.rootPath }`);
-    }
-
-}
+    ],
+    exports: [
+        AdminJS
+    ]
+})
+export class AdminRootModule extends AdminRootModuleClass { }
