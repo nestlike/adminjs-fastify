@@ -92,6 +92,9 @@ export class AppModule { }
 The above configuration does not provide a session store instance to [@fastify/session](https://github.com/fastify/session). Make sure you provide
 one when using you application in a production environment.
 
+If you don't provide the `auth` property in your options object authentication will be disabled. However for production environments this might not
+be the best idea.
+
 ## Adding Resources
 
 After the module is configured you can add resources to AdminJS in your entity modules.
