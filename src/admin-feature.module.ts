@@ -1,6 +1,10 @@
 import { Inject, Module } from '@nestjs/common';
 
-import { AdminFeatureModuleClass, AdminModuleResources, ADMIN_MODULE_RESOURCES } from './admin-feature.module-definition';
+import {
+    AdminFeatureModuleClass,
+    AdminModuleResources,
+    ADMIN_MODULE_RESOURCES
+} from './admin-feature.module-definition';
 
 class ResourceCollector {
 

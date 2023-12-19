@@ -1,7 +1,5 @@
-import AdminJSFastify from '@adminjs/fastify';
 import { Logger, Module } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
-import AdminJS from 'adminjs';
 import { FastifyInstance } from 'fastify';
 
 import { resourceCollector } from './admin-feature.module';
@@ -10,12 +8,11 @@ import { AdminModuleOptions, AdminRootModuleClass, ADMIN_MODULE_OPTIONS } from '
 @Module({
     providers: [
         {
-            provide: AdminJS,
+            provide: 'ADMIN_JS',
             inject: [ADMIN_MODULE_OPTIONS, HttpAdapterHost],
             async useFactory(options: AdminModuleOptions, httpAdapterHost: HttpAdapterHost) {
                 const resources = await resourceCollector.resources;
-                const { auth, sessionOptions } = options;
-                const adminJSOptions = options.adminJSOptions || {};
+                const adminJSOptions = options.adminJsOptions || {};
 
                 if (resources.length) {
                     adminJSOptions.resources = adminJSOptions.resources
@@ -26,24 +23,28 @@ import { AdminModuleOptions, AdminRootModuleClass, ADMIN_MODULE_OPTIONS } from '
                         : resources;
                 }
 
-                const adminJS = new AdminJS(adminJSOptions);
+                const AdminJS = (await import('adminjs')).AdminJS;
+                const admin = new AdminJS(adminJSOptions);
 
                 await httpAdapterHost.httpAdapter.getInstance<FastifyInstance>().register(async fastifyApp => {
+                    const AdminJSFastify = await import('@adminjs/fastify');
+                    const { auth, sessionOptions } = options;
+
                     if (auth) {
-                        await AdminJSFastify.buildAuthenticatedRouter(adminJS, auth, fastifyApp, sessionOptions);
+                        await AdminJSFastify.buildAuthenticatedRouter(admin, auth, fastifyApp, sessionOptions);
                     } else {
-                        await AdminJSFastify.buildRouter(adminJS, fastifyApp);
+                        await AdminJSFastify.buildRouter(admin, fastifyApp);
                     }
                 });
 
-                new Logger('AdminModule').log(`Setup adminJS at ${ adminJS.options.rootPath }`);
+                new Logger('AdminModule').log(`Setup adminJS at ${ admin.options.rootPath }`);
 
-                return adminJS;
+                return admin;
             }
         }
     ],
     exports: [
-        AdminJS
+        'ADMIN_JS'
     ]
 })
 export class AdminRootModule extends AdminRootModuleClass { }

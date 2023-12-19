@@ -1,5 +1,6 @@
 import { ConfigurableModuleAsyncOptions, DynamicModule, Module } from '@nestjs/common';
-import { ResourceWithOptions } from 'adminjs';
+// @ts-expect-error type-only import
+import type { ResourceWithOptions } from 'adminjs';
 import { AdminFeatureModule, resourceCollector } from './admin-feature.module';
 
 import { AdminRootModule } from './admin-root.module';
